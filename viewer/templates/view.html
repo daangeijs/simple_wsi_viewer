@@ -1,0 +1,25 @@
+{% extends "core.html" %}
+{% load static %}
+
+{% block title %}View DZI{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div id="viewer" style="height: 99vh;"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional_scripts %}
+    <script>
+        var viewer = OpenSeadragon({
+            id: "viewer",
+            prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
+            tileSources: "{{ dzi_path }}",
+            showNavigator: true,
+            navigatorPosition: "BOTTOM_RIGHT",
+            navigatorSizeRatio: 0.2,
+        });
+    </script>
+{% endblock %}

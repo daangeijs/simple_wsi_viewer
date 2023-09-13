@@ -1,0 +1,16 @@
+{% extends "core.html" %}
+
+
+{% block title %}Upload TIF{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
