@@ -25,7 +25,7 @@ To run the Whole Slide Image Viewer, follow these steps:
 
 3. Use the provided Makefile to run the server:
     ```bash
-    make runserver
+     make runserver FOLDER=/path/to/your/imagefolder      
     ```
 
 This will spin up the Django application. You can then navigate to the provided local URL in your web browser to access the image viewer interface.
@@ -34,9 +34,6 @@ This will spin up the Django application. You can then navigate to the provided 
 ![List example](examples/list.png)
 ![Viewer example](examples/slide_view.png)
 
-- [ ] Stream WSI's rather then converting them to WSI.
-- [ ] List directories
-- [ ] Generate miniatures
 
 ## Contributing:
 

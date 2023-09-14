@@ -113,7 +113,7 @@ class _Directory:
         relpath = Path(relpath)
         self.name = relpath.name
         self.children = []
-        for child in sorted((Path(basedir) / relpath).glob('*A15.tif')):
+        for child in sorted((Path(basedir) / relpath).iterdir()):
             cur_relpath = relpath / child.name
             if child.is_dir():
                 cur_dir = _Directory(basedir, cur_relpath)
