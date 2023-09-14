@@ -1,41 +1,106 @@
-import os
+from io import BytesIO
 from pathlib import Path
 
-from django.shortcuts import render, redirect
-from viewer.forms import UploadFileForm
-from viewer.models import UploadedFile
-from viewer.utils import convert_to_dzi
-from wsi_viewer import settings
+from django.urls import reverse
+from django.core.files.base import ContentFile
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse, Http404
+from django.conf import settings
+from viewer.utils import _SlideCache, _Directory, generate_thumbnail
+
+from django.views.decorators.cache import cache_page
+
+# Cache setup
+config_map = {
+    'DEEPZOOM_TILE_SIZE': 'tile_size',
+    'DEEPZOOM_OVERLAP': 'overlap',
+    'DEEPZOOM_LIMIT_BOUNDS': 'limit_bounds',
+}
+opts = {v: getattr(settings, k) for k, v in config_map.items()}
+cache = _SlideCache(
+    settings.SLIDE_CACHE_SIZE,
+    settings.SLIDE_TILE_CACHE_MB,
+    opts,
+    settings.DEEPZOOM_COLOR_MODE,
+)
 
 
+def get_slide(path):
+    slide_dir = Path(settings.SLIDE_DIR)
+    slide_path = (slide_dir / path).resolve()
 
-def upload_and_view(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            instance = form.save()
-            file_stem = Path(instance.uploaded_file.name).stem
-            relative_dzi_path = os.path.join('dzi_files', file_stem + '.dzi')
+    if not slide_path.exists():
+        raise Http404("Slide does not exist.")
 
-            full_dzi_path = os.path.join(settings.MEDIA_ROOT, relative_dzi_path)
-            convert_to_dzi(instance.uploaded_file.path, Path(full_dzi_path).parent / file_stem)
-            instance.dzi_file = relative_dzi_path
-            instance.save()
+    try:
+        slide = cache.get(str(slide_path))
+        slide.filename = slide_path.name
+        return slide
+    except Exception as e:
+        raise Http404(str(e))
 
-            return redirect('view_dzi', instance.id)
-    else:
-        form = UploadFileForm()
-    return render(request, 'upload.html', {'form': form})
+@cache_page(60 * 15)
+def index(request):
+    root_dir = _Directory(settings.SLIDE_DIR)
+    return render(request, 'catalog.html', {'root_dir': root_dir})
+
+@cache_page(60 * 15)
+def slide(request, path):
+    slide_obj = get_slide(path)
+    # Assuming you have a URL pattern named 'dzi' for the next view
+    slide_url = reverse('dzi', args=[path])
+    root_dir = _Directory(settings.SLIDE_DIR)
+    position = [idx for idx, name in enumerate(root_dir.children) if name.name == slide_obj.filename][0]
+    context = {
+        'slide_url': slide_url,
+        'slide_filename': slide_obj.filename,
+        'slide_mpp': slide_obj.mpp,
+        'available_files': root_dir,
+        'previous_slide': root_dir.children[position - 1].name if position > 0 else slide_obj.filename,
+        'next_slide': root_dir.children[position + 1].name if position < len(root_dir.children) - 1 else slide_obj.filename,
+    }
+    return render(request, 'view.html', context)
 
 
-def view_dzi(request, tif_id):
-    tif_instance = UploadedFile.objects.get(id=tif_id)
-    abs_dzi_path = os.path.join(settings.MEDIA_URL, tif_instance.dzi_file)
-    return render(request, 'view.html', {'dzi_path': abs_dzi_path})
+def dzi(request, path):
+    slide_obj = get_slide(path)
+    format_ = settings.DEEPZOOM_FORMAT
+    dzi_content = slide_obj.get_dzi(format_)
+    return HttpResponse(dzi_content, content_type='application/xml')
 
 
-def list_files(request):
-    # Query all UploadedFile objects that have a .dzi file associated
-    files = UploadedFile.objects.filter(dzi_file__isnull=False)
+def tile(request, path, level, col, row, format_):
+    slide_obj = get_slide(path)
+    format_ = format_.lower()
+    if format_ not in ['jpeg', 'png']:
+        # Not supported by Deep Zoom
+        raise Http404("Format not supported.")
+    try:
+        tile_obj = slide_obj.get_tile(level, (col, row))
+    except ValueError:
+        # Invalid level or coordinates
+        raise Http404("Invalid level or coordinates.")
+    slide_obj.transform(tile_obj)
 
-    return render(request, 'list_files.html', {'files': files})
+    buf = BytesIO()
+    tile_obj.save(
+        buf,
+        format_,
+        quality=settings.DEEPZOOM_TILE_QUALITY,
+        icc_profile=tile_obj.info.get('icc_profile')
+    )
+
+    response = HttpResponse(content=ContentFile(buf.getvalue()), content_type=f'image/{format_}')
+    return response
+
+
+def thumbnail_view(request, path):
+    # Generate or retrieve the thumbnail for the given path
+    print(path)
+    try:
+        thumbnail_data = generate_thumbnail('/slides/' + path)
+    except:
+        raise Http404("Thumbnail not found.")
+
+    response = HttpResponse(thumbnail_data, content_type='image/jpeg')
+    return response

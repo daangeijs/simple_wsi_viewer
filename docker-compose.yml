@@ -3,11 +3,22 @@ version: '3.9'
 services:
   web:
     image: wsi_viewer:latest
-    build: .
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
     volumes:
       - .:/app
+      - ${FOLDER}:/slides
     environment:
       - DJANGO_SETTINGS_MODULE=wsi_viewer.settings
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+volumes:
+  redis-data:

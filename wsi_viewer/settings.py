@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-)0gpywicm@3*$ohq)4594r&#_tiuod0ng8g(6xq8q#de_vyh!*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost']
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -82,6 +81,16 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -127,3 +136,16 @@ MEDIA_ROOT = os.path.join('media/')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Folder containing the slides
+SLIDE_DIR = '/slides'
+
+## Deepzoom settings
+SLIDE_CACHE_SIZE = 20
+SLIDE_TILE_CACHE_MB = 256
+DEEPZOOM_FORMAT = 'jpeg'
+DEEPZOOM_TILE_SIZE = 512
+DEEPZOOM_OVERLAP = 1
+DEEPZOOM_LIMIT_BOUNDS = True
+DEEPZOOM_TILE_QUALITY = 75
+DEEPZOOM_COLOR_MODE = 'absolute-colorimetric'

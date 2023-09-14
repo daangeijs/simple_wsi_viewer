@@ -10,4 +10,5 @@ migrate:
 	docker compose run --rm web python manage.py migrate
 
 runserver: build migrations migrate
+	export FOLDER=$(FOLDER); \
 	bash -c "trap 'docker compose down' EXIT; docker compose up"

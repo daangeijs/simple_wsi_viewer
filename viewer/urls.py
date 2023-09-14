@@ -3,10 +3,13 @@ from viewer import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
-    path('upload/', views.upload_and_view, name='upload_and_view'),
-    path('', views.list_files, name='list_files'),
-    path('view/<int:tif_id>/', views.view_dzi, name='view_dzi'),
+    path('', views.index, name='index'),
+    path('<path:path>/', views.slide, name='slide'),
+    path('<path:path>.dzi', views.dzi, name='dzi'),
+    path('<path:path>_files/<int:level>/<int:col>_<int:row>.<format_>', views.tile, name='tile'),
+    path('thumbnail/<path:path>', views.thumbnail_view, name='thumbnail'),
 ]
 
 # This serves media files in development mode.

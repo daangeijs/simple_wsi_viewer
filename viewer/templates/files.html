@@ -1,0 +1,40 @@
+<!-- Removed the doctype, title, and style tags, as this is now just a snippet. -->
+
+<style type="text/css">
+li {
+    list-style-type: none;
+
+}
+li.none {
+    font-style: italic;
+}
+ul {
+    padding-inline-start: 0px;
+}
+</style>
+
+
+<ul>
+    {% for entry in root_dir.children %}
+        <li class="list-group-item {% if entry.name == current_file %}selected{% endif %}">
+            {% if entry.url_path %}
+                <a href="{% url 'slide' path=entry.url_path %}">
+                    {{ entry.name }}
+                </a>
+            {% else %}
+                {{ entry.name }}
+            {% endif %}
+
+            {% if entry.children %}
+                <ul>
+                    <!-- For recursion in Django, you'd typically include the same template. -->
+                    {% with root_dir=entry %}
+                        {% include "files.html" %}
+                    {% endwith %}
+                </ul>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li class="none">None</li>
+    {% endfor %}
+</ul>

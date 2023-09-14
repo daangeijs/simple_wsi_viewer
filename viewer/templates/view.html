@@ -1,25 +1,103 @@
 {% extends "core.html" %}
 {% load static %}
 
-{% block title %}View DZI{% endblock %}
+
+{% block title %}
+    {{ slide_filename }}
+{% endblock %}
+
+{% block additional_head %}
+    <style type="text/css">
+        html, body, .container-fluid, .row, main {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #view {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            color: white;
+        }
+
+        .sidebar-scrollable {
+            max-height: 90vh; /* This will make the sidebar take 80% of the viewport height. Adjust as needed. */
+            overflow-y: auto;
+        }
+
+        li.selected {
+            background-color: #ececec;
+            font-weight: bold;
+        }
+
+        li.selected a {
+            color: rgb(0, 0, 0);
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-12">
-            <div id="viewer" style="height: 99vh;"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse show" id="sidebarMenu">
+                <div class="position-sticky sidebar-scrollable">
+                    <ul class="nav flex-column">
+                        {% include "files.html" with root_dir=available_files current_file=slide_filename %}
+                    </ul>
+                </div>
+                <div class="navigation-buttons d-flex justify-content-between">
+                    <a href="{% url 'slide' path=previous_slide %}" class="btn btn-info">Previous</a>
+                    <a href="{% url 'slide' path=next_slide %}" class="btn btn-info">Next</a>
+                </div>
+                <div class="navigation-buttons d-flex ">
+                    <a href="{% url 'index' %}" class="btn btn-dark">Back to Catalog</a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                <div id="view"></div>
+            </main>
         </div>
+
     </div>
+
 {% endblock %}
 
 {% block additional_scripts %}
-    <script>
-        var viewer = OpenSeadragon({
-            id: "viewer",
-            prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
-            tileSources: "{{ dzi_path }}",
-            showNavigator: true,
-            navigatorPosition: "BOTTOM_RIGHT",
-            navigatorSizeRatio: 0.2,
+    <script type="text/javascript">
+        $(function () {
+            var viewer = new OpenSeadragon({
+                id: "view",
+                tileSources: "{{ slide_url }}",
+                prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
+                showNavigator: true,
+                showRotationControl: true,
+                animationTime: 0.5,
+                blendTime: 0.1,
+                constrainDuringPan: true,
+                maxZoomPixelRatio: 2,
+                minZoomImageRatio: 1,
+                visibilityRatio: 1,
+                zoomPerScroll: 2,
+                timeout: 120000,
+            });
+
+            var mpp = parseFloat("{{ slide_mpp }}");
+            viewer.scalebar({
+                pixelsPerMeter: mpp ? (1e6 / mpp) : 0,
+                xOffset: 10,
+                yOffset: 10,
+                barThickness: 3,
+                color: '#555555',
+                fontColor: '#333333',
+                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+            });
         });
     </script>
 {% endblock %}
