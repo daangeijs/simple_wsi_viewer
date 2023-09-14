@@ -1,3 +1,4 @@
 db.sqlite3
 media/uploads/*
 media/dzi_files/*
+.idea
