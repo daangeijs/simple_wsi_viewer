@@ -16,10 +16,16 @@
         var viewer = OpenSeadragon({
             id: "viewer",
             prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
-            tileSources: "{{ dzi_path }}",
+            tileSources: {
+                type: 'image',
+                server: 'http://iipimage:9000/fcgi-bin/iipsrv.fcgi?DeepZoom=WW_S01_P000106_C0001_B301_T01_V01_L01_A15_wyuNp5S.tif.dzi',
+                filePath: '{{ file.uploaded_file.url }}'
+            },
             showNavigator: true,
             navigatorPosition: "BOTTOM_RIGHT",
             navigatorSizeRatio: 0.2,
         });
     </script>
+    {{ file.uploaded_file.url }}
+    'http://iipimage:9000/fcgi-bin/iipsrv.fcgi?DeepZoom={{ file.uploaded_file.url }}.dzi'
 {% endblock %}

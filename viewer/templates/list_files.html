@@ -8,7 +8,7 @@
     <ul class="list-group">
         {% for file in files %}
             <li class="list-group-item">
-                <a href="{% url 'view_dzi' file.id %}">{{ file.uploaded_file.name }}</a>
+                <a href="{% url 'view_file' file.id %}">{{ file.uploaded_file.name }}</a>
             </li>
         {% endfor %}
     </ul>

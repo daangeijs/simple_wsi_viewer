@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from viewer.forms import UploadFileForm
 from viewer.models import UploadedFile
 from viewer.utils import convert_to_dzi
@@ -22,16 +22,15 @@ def upload_and_view(request):
             instance.dzi_file = relative_dzi_path
             instance.save()
 
-            return redirect('view_dzi', instance.id)
+            return redirect('view_file', instance.id)
     else:
         form = UploadFileForm()
     return render(request, 'upload.html', {'form': form})
 
 
-def view_dzi(request, tif_id):
-    tif_instance = UploadedFile.objects.get(id=tif_id)
-    abs_dzi_path = os.path.join(settings.MEDIA_URL, tif_instance.dzi_file)
-    return render(request, 'view.html', {'dzi_path': abs_dzi_path})
+def view_file(request, file_id):
+    file = get_object_or_404(UploadedFile, id=file_id)
+    return render(request, 'view.html', {'file': file})
 
 
 def list_files(request):
