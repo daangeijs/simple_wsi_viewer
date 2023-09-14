@@ -1,0 +1,116 @@
+{% extends "core.html" %}
+
+{% block additional_head %}
+<style type="text/css">
+    .card-img-top {
+        height: 100px;
+        object-fit: cover;
+    }
+    .tile-mode {
+        display: none;   /* Hiding the tile mode by default */
+    }
+    .list-mode {
+        display: block;  /* Displaying the list mode by default */
+    }
+</style>
+{% endblock %}
+
+{% block title %}WSI web viewer{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+   <div>
+       <h2 class="mb-4">WSI web viewer</h2>
+        <button class="btn btn-info mb-4" onclick="showView('tile')">Tile Mode</button>
+        <button class="btn btn-info mb-4" onclick="showView('list')">List Mode</button>
+   </div><!-- Tile Mode View -->
+    <div class="tile-mode" id="tileView">
+        <div class="card-group">
+        {% for entry in root_dir.children %}
+        <div class="card">
+            <a href="{% url 'slide' path=entry.url_path %}">
+                <img src="" data-src="{{ entry.url_path }}" alt="{{ entry.name }}" class="card-img-top lazy-thumbnail">
+                <div class="card-body">
+                    <h5 class="card-title">{{ entry.name }}</h5>
+                </div>
+            </a>
+        </div>
+        {% if forloop.counter|divisibleby:8 and not forloop.last %}
+        </div>
+        <div class="card-group">
+        {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+
+    <!-- List Mode View -->
+    <div class="list-mode" id="listView">
+        <ul>
+        {% for entry in root_dir.children %}
+        <li class="list-group-item">
+            <a href="{% url 'slide' path=entry.url_path %}">{{ entry.name }}</a>
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script>
+    function showView(mode) {
+        if (mode === 'tile') {
+            document.getElementById('listView').style.display = 'none';
+            document.getElementById('tileView').style.display = 'block';
+        } else {
+            document.getElementById('tileView').style.display = 'none';
+            document.getElementById('listView').style.display = 'block';
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        let lazyImages = [].slice.call(document.querySelectorAll(".lazy-thumbnail"));
+        let active = false;
+
+        const lazyLoad = function () {
+            if (active === false) {
+                active = true;
+
+                setTimeout(function () {
+                    lazyImages.forEach(function (lazyImage) {
+                        if ((lazyImage.getBoundingClientRect().top <= window.innerHeight && lazyImage.getBoundingClientRect().bottom >= 0)
+                            && getComputedStyle(lazyImage).display !== "none") {
+                            let src = lazyImage.getAttribute("data-src");
+                            if (src) {
+                                fetch(`thumbnail/${src}`)
+                                    .then(response => response.blob())
+                                    .then(images => {
+                                        const imageURL = URL.createObjectURL(images);
+                                        lazyImage.src = imageURL;
+                                        lazyImage.removeAttribute("data-src");
+                                    });
+                            }
+                            lazyImages = lazyImages.filter(function (image) {
+                                return image.getAttribute("data-src");
+                            });
+
+                            if (lazyImages.length === 0) {
+                                document.removeEventListener("scroll", lazyLoad);
+                                window.removeEventListener("resize", lazyLoad);
+                                window.removeEventListener("orientationchange", lazyLoad);
+                            }
+                        }
+                    });
+
+                    active = false;
+                }, 200);
+            }
+        };
+
+        document.addEventListener("scroll", lazyLoad);
+        window.addEventListener("resize", lazyLoad);
+        window.addEventListener("orientationchange", lazyLoad);
+    });
+    </script>
+{% endblock %}
+```

@@ -2,3 +2,4 @@ Django
 gunicorn
 pyvips
 openslide-python
+django-redis

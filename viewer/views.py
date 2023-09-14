@@ -6,8 +6,9 @@ from django.core.files.base import ContentFile
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.conf import settings
-from viewer.utils import _SlideCache, _Directory, _SlideFile  # Import your classes
+from viewer.utils import _SlideCache, _Directory, generate_thumbnail
 
+from django.views.decorators.cache import cache_page
 
 # Cache setup
 config_map = {
@@ -23,6 +24,7 @@ cache = _SlideCache(
     settings.DEEPZOOM_COLOR_MODE,
 )
 
+
 def get_slide(path):
     slide_dir = Path(settings.SLIDE_DIR)
     slide_path = (slide_dir / path).resolve()
@@ -37,20 +39,25 @@ def get_slide(path):
     except Exception as e:
         raise Http404(str(e))
 
+
 def index(request):
     root_dir = _Directory(settings.SLIDE_DIR)
-    return render(request, 'files.html', {'root_dir': root_dir})
+    return render(request, 'catalog.html', {'root_dir': root_dir})
 
+@cache_page(60 * 15)
 def slide(request, path):
     slide_obj = get_slide(path)
     # Assuming you have a URL pattern named 'dzi' for the next view
     slide_url = reverse('dzi', args=[path])
     root_dir = _Directory(settings.SLIDE_DIR)
+    position = [idx for idx, name in enumerate(root_dir.children) if name.name == slide_obj.filename][0]
     context = {
         'slide_url': slide_url,
         'slide_filename': slide_obj.filename,
         'slide_mpp': slide_obj.mpp,
-        'root_dir': root_dir
+        'available_files': root_dir,
+        'previous_slide': root_dir.children[position - 1].name if position > 0 else slide_obj.filename,
+        'next_slide': root_dir.children[position + 1].name if position < len(root_dir.children) - 1 else slide_obj.filename,
     }
     return render(request, 'view.html', context)
 
@@ -60,6 +67,7 @@ def dzi(request, path):
     format_ = settings.DEEPZOOM_FORMAT
     dzi_content = slide_obj.get_dzi(format_)
     return HttpResponse(dzi_content, content_type='application/xml')
+
 
 def tile(request, path, level, col, row, format_):
     slide_obj = get_slide(path)
@@ -83,4 +91,16 @@ def tile(request, path, level, col, row, format_):
     )
 
     response = HttpResponse(content=ContentFile(buf.getvalue()), content_type=f'image/{format_}')
+    return response
+
+
+def thumbnail_view(request, path):
+    # Generate or retrieve the thumbnail for the given path
+    print(path)
+    try:
+        thumbnail_data = generate_thumbnail('/slides/' + path)
+    except:
+        raise Http404("Thumbnail not found.")
+
+    response = HttpResponse(thumbnail_data, content_type='image/jpeg')
     return response

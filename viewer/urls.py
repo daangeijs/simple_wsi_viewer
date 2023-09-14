@@ -9,6 +9,7 @@ urlpatterns = [
     path('<path:path>/', views.slide, name='slide'),
     path('<path:path>.dzi', views.dzi, name='dzi'),
     path('<path:path>_files/<int:level>/<int:col>_<int:row>.<format_>', views.tile, name='tile'),
+    path('thumbnail/<path:path>', views.thumbnail_view, name='thumbnail'),
 ]
 
 # This serves media files in development mode.

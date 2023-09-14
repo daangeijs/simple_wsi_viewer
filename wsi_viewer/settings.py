@@ -82,6 +82,16 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -128,14 +138,14 @@ MEDIA_ROOT = os.path.join('media/')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-## DEEPZOOM SETTINGS
-
+# Folder containing the slides
 SLIDE_DIR = '/slides'
-SLIDE_CACHE_SIZE = 10
-SLIDE_TILE_CACHE_MB = 128
+
+## Deepzoom settings
+SLIDE_CACHE_SIZE = 20
+SLIDE_TILE_CACHE_MB = 256
 DEEPZOOM_FORMAT = 'jpeg'
-DEEPZOOM_TILE_SIZE = 254
+DEEPZOOM_TILE_SIZE = 512
 DEEPZOOM_OVERLAP = 1
 DEEPZOOM_LIMIT_BOUNDS = True
 DEEPZOOM_TILE_QUALITY = 75

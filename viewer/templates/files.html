@@ -3,21 +3,21 @@
 <style type="text/css">
 li {
     list-style-type: none;
-    margin: 0.4em 0;
+
 }
 li.none {
     font-style: italic;
 }
+ul {
+    padding-inline-start: 0px;
+}
 </style>
 
-<h1>Available Slides</h1>
 
 <ul>
     {% for entry in root_dir.children %}
-        <li>
+        <li class="list-group-item {% if entry.name == current_file %}selected{% endif %}">
             {% if entry.url_path %}
-                <!-- Here's where you'd change the URL generation. -->
-                <!-- Assume you've named your URL pattern "slide" in Django's urls.py. -->
                 <a href="{% url 'slide' path=entry.url_path %}">
                     {{ entry.name }}
                 </a>
@@ -29,7 +29,7 @@ li.none {
                 <ul>
                     <!-- For recursion in Django, you'd typically include the same template. -->
                     {% with root_dir=entry %}
-                        {% include "list.html" %}
+                        {% include "files.html" %}
                     {% endwith %}
                 </ul>
             {% endif %}

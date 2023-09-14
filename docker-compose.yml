@@ -11,3 +11,14 @@ services:
       - /Users/daangeijs/Desktop/test:/slides
     environment:
       - DJANGO_SETTINGS_MODULE=wsi_viewer.settings
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+volumes:
+  redis-data:
