@@ -1,5 +1,5 @@
 """
-ASGI config for wsu_viewer project.
+ASGI config for wsi_viewer project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wsu_viewer.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wsi_viewer.settings')
 
 application = get_asgi_application()

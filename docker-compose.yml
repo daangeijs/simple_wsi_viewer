@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   web:
-    image: wsu_viewer:latest
+    image: wsi_viewer:latest
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     ports:
@@ -10,4 +10,4 @@ services:
     volumes:
       - .:/app
     environment:
-      - DJANGO_SETTINGS_MODULE=wsu_viewer.settings
+      - DJANGO_SETTINGS_MODULE=wsi_viewer.settings

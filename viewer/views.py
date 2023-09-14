@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from viewer.forms import TiffFileForm
 from viewer.models import TiffFile
 from viewer.utils import convert_to_dzi
-from wsu_viewer import settings
+from wsi_viewer import settings
 
 
 def upload_and_view(request):

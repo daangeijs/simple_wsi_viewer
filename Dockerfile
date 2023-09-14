@@ -23,7 +23,7 @@ RUN pip install --upgrade pip && \
 # Copy the project code into the container
 COPY . .
 # Set the environment variable for Django
-ENV DJANGO_SETTINGS_MODULE=wsu_viewer.settings
+ENV DJANGO_SETTINGS_MODULE=wsi_viewer.settings
 
 # Expose the port the app runs on
 EXPOSE 8000
