@@ -39,7 +39,7 @@ def get_slide(path):
     except Exception as e:
         raise Http404(str(e))
 
-
+@cache_page(60 * 15)
 def index(request):
     root_dir = _Directory(settings.SLIDE_DIR)
     return render(request, 'catalog.html', {'root_dir': root_dir})
