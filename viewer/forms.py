@@ -1,7 +1,7 @@
 from django import forms
-from .models import TiffFile
+from viewer.models import UploadedFile
 
-class TiffFileForm(forms.ModelForm):
+class UploadFileForm(forms.ModelForm):
     class Meta:
-        model = TiffFile
+        model = UploadedFile
         fields = ('uploaded_file',)

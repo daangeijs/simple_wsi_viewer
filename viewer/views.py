@@ -2,15 +2,16 @@ import os
 from pathlib import Path
 
 from django.shortcuts import render, redirect
-from viewer.forms import TiffFileForm
-from viewer.models import TiffFile
+from viewer.forms import UploadFileForm
+from viewer.models import UploadedFile
 from viewer.utils import convert_to_dzi
 from wsi_viewer import settings
 
 
+
 def upload_and_view(request):
     if request.method == 'POST':
-        form = TiffFileForm(request.POST, request.FILES)
+        form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             instance = form.save()
             file_stem = Path(instance.uploaded_file.name).stem
@@ -23,11 +24,18 @@ def upload_and_view(request):
 
             return redirect('view_dzi', instance.id)
     else:
-        form = TiffFileForm()
+        form = UploadFileForm()
     return render(request, 'upload.html', {'form': form})
 
 
 def view_dzi(request, tif_id):
-    tif_instance = TiffFile.objects.get(id=tif_id)
+    tif_instance = UploadedFile.objects.get(id=tif_id)
     abs_dzi_path = os.path.join(settings.MEDIA_URL, tif_instance.dzi_file)
     return render(request, 'view.html', {'dzi_path': abs_dzi_path})
+
+
+def list_files(request):
+    # Query all UploadedFile objects that have a .dzi file associated
+    files = UploadedFile.objects.filter(dzi_file__isnull=False)
+
+    return render(request, 'list_files.html', {'files': files})
