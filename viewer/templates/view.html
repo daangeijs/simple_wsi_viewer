@@ -1,31 +1,86 @@
 {% extends "core.html" %}
 {% load static %}
 
-{% block title %}View DZI{% endblock %}
+
+{% block title %}
+{{ slide_filename }}
+{% endblock %}
+
+{% block additional_head %}
+<style type="text/css">
+html, body, .container-fluid, .row, main {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#view {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    color: white;
+}
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-12">
-            <div id="viewer" style="height: 99vh;"></div>
-        </div>
+        <!-- Collapsible Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" id="sidebarMenu">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+                {% include "files.html" with root_dir=my_files_directory %}
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+            <div id="view"></div>
+        </main>
     </div>
+</div>
+
+<!-- Sidebar Toggle Button -->
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-expanded="false" aria-controls="sidebarMenu">
+    Toggle Sidebar
+</button>
 {% endblock %}
 
 {% block additional_scripts %}
-    <script>
-        var viewer = OpenSeadragon({
-            id: "viewer",
-            prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
-            tileSources: {
-                type: 'image',
-                server: 'http://iipimage:9000/fcgi-bin/iipsrv.fcgi?DeepZoom=WW_S01_P000106_C0001_B301_T01_V01_L01_A15_wyuNp5S.tif.dzi',
-                filePath: '{{ file.uploaded_file.url }}'
-            },
-            showNavigator: true,
-            navigatorPosition: "BOTTOM_RIGHT",
-            navigatorSizeRatio: 0.2,
-        });
-    </script>
-    {{ file.uploaded_file.url }}
-    'http://iipimage:9000/fcgi-bin/iipsrv.fcgi?DeepZoom={{ file.uploaded_file.url }}.dzi'
+<script type="text/javascript">
+$(function() {
+    var viewer = new OpenSeadragon({
+        id: "view",
+        tileSources: "{{ slide_url }}",
+        prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
+        showNavigator: true,
+        showRotationControl: true,
+        animationTime: 0.5,
+        blendTime: 0.1,
+        constrainDuringPan: true,
+        maxZoomPixelRatio: 2,
+        minZoomImageRatio: 1,
+        visibilityRatio: 1,
+        zoomPerScroll: 2,
+        timeout: 120000,
+    });
+
+    var mpp = parseFloat("{{ slide_mpp }}");
+    viewer.scalebar({
+        pixelsPerMeter: mpp ? (1e6 / mpp) : 0,
+        xOffset: 10,
+        yOffset: 10,
+        barThickness: 3,
+        color: '#555555',
+        fontColor: '#333333',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    });
+});
+</script>
 {% endblock %}

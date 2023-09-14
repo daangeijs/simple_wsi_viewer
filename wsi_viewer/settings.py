@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)0gpywicm@3*$ohq)4594r&#_tiuod0ng8g(6xq8q#de_vyh!*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'nginx', '0.0.0.0']
 
 
 # Application definition
@@ -127,3 +127,16 @@ MEDIA_ROOT = os.path.join('media/')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+## DEEPZOOM SETTINGS
+
+SLIDE_DIR = '/slides'
+SLIDE_CACHE_SIZE = 10
+SLIDE_TILE_CACHE_MB = 128
+DEEPZOOM_FORMAT = 'jpeg'
+DEEPZOOM_TILE_SIZE = 254
+DEEPZOOM_OVERLAP = 1
+DEEPZOOM_LIMIT_BOUNDS = True
+DEEPZOOM_TILE_QUALITY = 75
+DEEPZOOM_COLOR_MODE = 'absolute-colorimetric'

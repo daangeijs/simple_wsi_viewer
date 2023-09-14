@@ -8,23 +8,6 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+      - /Users/daangeijs/Desktop/test:/slides
     environment:
       - DJANGO_SETTINGS_MODULE=wsi_viewer.settings
-    depends_on:
-      - iipimage
-    networks:
-      - backend
-
-  iipimage:
-    build:
-      context: .
-      dockerfile: Dockerfile.imageserver
-    ports:
-      - "9000:9000"
-    volumes:
-      - ./media/uploads:/images # This directory will be accessible in the IIPImage container
-    networks:
-      - backend
-
-networks:
-  backend:
