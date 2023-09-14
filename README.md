@@ -15,12 +15,12 @@ To run the Whole Slide Image Viewer, follow these steps:
 
 1. Clone the repository:
     ```bash
-    git clone <repository_url>
+    git clone https://github.com/daangeijs/simple_wsi_viewer.git
     ```
 
 2. Navigate to the project directory:
     ```bash
-    cd <repository_name>
+    cd simple_wsi_viewer
     ```
 
 3. Use the provided Makefile to run the server:
@@ -33,4 +33,3 @@ This will spin up the Django application. You can then navigate to the provided 
 ## Contributing:
 
 If you'd like to contribute, please fork the repository and use a feature branch. Pull requests are warmly welcomed.
-further embellish this README with badges, more detailed setup instructions, screenshots of the application, or any other details you find pertinent. Remember, a well-documented README can significantly enhance the attractiveness and usability of your GitHub project.
