@@ -1,6 +1,6 @@
 # Whole Slide Image Viewer for Pathology
 
-This Django application provides a simple web interface for viewing pathology whole-slide-images . With the underlying `pyvips` library, it supports a wide range of file formats. The application converts these images to the Deep Zoom Image (DZI) format, which allows zooming and panning, by using OpenSeadragon. The application is built using Docker and Docker-compose, and can be easily deployed to any server.
+This Django application provides a simple web interface for viewing pathology whole-slide-images . With the underlying `openslide` library, it supports a wide range of file formats. The application converts these images on-the-fly to the Deep Zoom Image (DZI) format, which allows for fast zooming and panning, by using OpenSeadragon. The application is built using Docker and Docker-compose, and can be easily deployed to any server.
 
 ## Prerequisites:
 
