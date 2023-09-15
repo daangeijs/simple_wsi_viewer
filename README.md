@@ -31,8 +31,13 @@ To run the Whole Slide Image Viewer, follow these steps:
 This will spin up the Django application. You can then navigate to the provided local URL in your web browser to access the image viewer interface.
 
 ## Screenshots
-![List example](examples/list.png)
-![Viewer example](examples/slide_view.png)
+### List folder contents
+![List mode](examples/list_catalog.png)
+### Catalog of folder contents
+![Tile mode](examples/tile_catalog.png)
+### Viewer with navigation
+![Viewer example](examples/viewer.png)
+
 
 
 ## Contributing:

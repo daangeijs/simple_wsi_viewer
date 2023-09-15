@@ -113,19 +113,22 @@ class _Directory:
         relpath = Path(relpath)
         self.name = relpath.name
         self.children = []
-        for child in sorted((Path(basedir) / relpath).iterdir()):
+        for child in sorted((Path(basedir) / relpath).glob('*A15.tif')):
             cur_relpath = relpath / child.name
-            if child.is_dir():
-                cur_dir = _Directory(basedir, cur_relpath)
-                if cur_dir.children:
-                    self.children.append(cur_dir)
-            elif OpenSlide.detect_format(child):
+            #Todo: Disable folder nesting for now
+
+            # if child.is_dir():
+            #     cur_dir = _Directory(basedir, cur_relpath)
+            #     if cur_dir.children:
+            #         self.children.append(cur_dir)
+
+            if OpenSlide.detect_format(child):
                 self.children.append(_SlideFile(cur_relpath))
 
 
 class _SlideFile:
     def __init__(self, relpath):
-        self.name = os.path.basename(relpath)
+        self.name = relpath.name
         self.url_path = relpath
 
 import pyvips
