@@ -12,6 +12,6 @@ migrate:
 clear-cache:
 	docker compose run --rm web python manage.py clear_cache
 
-runserver: build clear-cache
+runserver: build migrations migrate clear-cache
 	export FOLDER=$(FOLDER); \
 	bash -c "trap 'docker compose down' EXIT; docker compose up"

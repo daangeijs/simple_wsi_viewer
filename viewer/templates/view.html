@@ -47,7 +47,7 @@
             <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse show" id="sidebarMenu">
                 <div class="position-sticky sidebar-scrollable">
                     <ul class="nav flex-column">
-                        {% include "files.html" with root_dir=available_files current_file=slide_filename %}
+                        {% include "files.html" with files=available_files current_file=slide_filename %}
                     </ul>
                 </div>
                 <div class="navigation-buttons d-flex justify-content-between">

@@ -1,14 +1,19 @@
+import io
 from io import BytesIO
 from pathlib import Path
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
-from viewer.utils import _SlideCache, _Directory, generate_thumbnail
+from viewer.utils import SlideCache, get_thumbnail
 
 from django.views.decorators.cache import cache_page
+from viewer.models import Image, IndexingStatus
+from viewer.tasks import index_images
+from django.http import FileResponse
 
 # Cache setup
 config_map = {
@@ -17,7 +22,7 @@ config_map = {
     'DEEPZOOM_LIMIT_BOUNDS': 'limit_bounds',
 }
 opts = {v: getattr(settings, k) for k, v in config_map.items()}
-cache = _SlideCache(
+cache = SlideCache(
     settings.SLIDE_CACHE_SIZE,
     settings.SLIDE_TILE_CACHE_MB,
     opts,
@@ -39,25 +44,51 @@ def get_slide(path):
     except Exception as e:
         raise Http404(str(e))
 
-@cache_page(60)
+
 def index(request):
-    root_dir = _Directory(settings.SLIDE_DIR)
-    return render(request, 'catalog.html', {'root_dir': root_dir})
+    # get all the slides from models
+    files = Image.objects.all()
+    return render(request, 'catalog.html', {'files': files, 'MEDIA_URL': settings.MEDIA_URL,
+                                            'finished_indexing': IndexingStatus.objects.get(id=1).finished})
+
+
+def trigger_indexing(request):
+    task = index_images.delay()
+    return JsonResponse({"task_id": str(task.id)})
+
+
+def check_indexing_status(request):
+    try:
+        status = IndexingStatus.objects.get(id=1).finished
+    except ObjectDoesNotExist:
+        status = False
+
+    if status:
+        # Optionally clear the cache of the main page here, if necessary
+        # cache.clear()
+        pass
+
+    return JsonResponse({"finished": status})
+
 
 @cache_page(60)
 def slide(request, path):
     slide_obj = get_slide(path)
     # Assuming you have a URL pattern named 'dzi' for the next view
     slide_url = reverse('dzi', args=[path])
-    root_dir = _Directory(settings.SLIDE_DIR)
-    position = [idx for idx, name in enumerate(root_dir.children) if name.name == slide_obj.filename][0]
+    # get the requested image object
+    current_image = Image.objects.get(path=path)
+    current_name = current_image.name
+    prev_image = Image.objects.filter(name__lt=current_name).order_by('-name').first() or current_image
+    next_image = Image.objects.filter(name__gt=current_name).order_by('name').first() or current_image
+
     context = {
         'slide_url': slide_url,
         'slide_filename': slide_obj.filename,
         'slide_mpp': slide_obj.mpp,
-        'available_files': root_dir,
-        'previous_slide': root_dir.children[position - 1].name if position > 0 else slide_obj.filename,
-        'next_slide': root_dir.children[position + 1].name if position < len(root_dir.children) - 1 else slide_obj.filename,
+        'available_files': Image.objects.all(),
+        'previous_slide': prev_image.path,
+        'next_slide': next_image.path
     }
     return render(request, 'view.html', context)
 
@@ -94,13 +125,17 @@ def tile(request, path, level, col, row, format_):
     return response
 
 
-def thumbnail_view(request, path):
-    # Generate or retrieve the thumbnail for the given path
-    print(path)
-    try:
-        thumbnail_data = generate_thumbnail('/slides/' + path)
-    except:
-        raise Http404("Thumbnail not found.")
+def generate_thumbnail(request, image_path):
+    # Gnerate the thumbnail on-the-fly
+    # Create an in-memory binary stream
+    thumbnail = get_thumbnail(image_path)
+    thumb_io = io.BytesIO()
 
-    response = HttpResponse(thumbnail_data, content_type='image/jpeg')
-    return response
+    # Save the PIL Image to the binary stream in PNG format
+    thumbnail.save(thumb_io, format="PNG")
+
+    # Move the cursor of the binary stream back to the start
+    thumb_io.seek(0)
+
+    # Return the binary stream as a response
+    return FileResponse(thumb_io, content_type="image/png")

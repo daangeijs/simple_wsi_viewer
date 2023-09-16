@@ -13,6 +13,16 @@ services:
       - DJANGO_SETTINGS_MODULE=wsi_viewer.settings
     depends_on:
       - redis
+      - celery
+
+  celery:
+    image: wsi_viewer:latest
+    command: celery -A wsi_viewer worker -l info
+    volumes:
+      - .:/app
+      - /Volumes/pathology/archives/skin/aida_sweden_dataset/test_set:/slides
+    depends_on:
+      - redis
 
   redis:
     image: redis:latest
