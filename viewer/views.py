@@ -44,13 +44,17 @@ def get_slide(path):
     except Exception as e:
         raise Http404(str(e))
 
-
-def index(request):
+def list_view(request):
     # get all the slides from models
     files = Image.objects.all()
-    return render(request, 'catalog.html', {'files': files, 'MEDIA_URL': settings.MEDIA_URL,
+    return render(request, 'list_view.html', {'files': files, 'MEDIA_URL': settings.MEDIA_URL,
                                             'finished_indexing': IndexingStatus.objects.get(id=1).finished})
 
+def tile_view(request):
+    # get all the slides from models
+    files = Image.objects.all()
+    return render(request, 'tile_view.html', {'files': files, 'MEDIA_URL': settings.MEDIA_URL,
+                                            'finished_indexing': IndexingStatus.objects.get(id=1).finished})
 
 def trigger_indexing(request):
     task = index_images.delay()
