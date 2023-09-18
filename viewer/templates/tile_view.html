@@ -28,12 +28,14 @@
                 {% for file in files %}
                     <div class="card">
                         <a href="{% url 'slide' path=file.path %}">
-                            <img class="lazyload card-img-top" data-src="/{{ file.thumbnail }}" alt="Thumbnail">
-                            <div class="spinner-border placeholder-spinner" role="status"
-                                 style="{% if file.thumbnail %}display:none;{% endif %}">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-
+                            {% if file.thumbnail %}
+                                <img class="lazyload card-img-top" data-src="/{{ file.thumbnail }}" alt="Thumbnail">
+                            {% else %}
+                                <div class="spinner-border placeholder-spinner" role="status"
+                                     style="{% if file.thumbnail %}display:none;{% endif %}">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            {% endif %}
                             <div class="card-body">
                                 <h5 class="card-title">{{ file.name }}</h5>
                             </div>
