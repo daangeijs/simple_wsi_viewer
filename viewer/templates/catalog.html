@@ -1,116 +1,157 @@
 {% extends "core.html" %}
 
 {% block additional_head %}
-<style type="text/css">
-    .card-img-top {
-        height: 100px;
-        object-fit: cover;
-    }
-    .tile-mode {
-        display: none;   /* Hiding the tile mode by default */
-    }
-    .list-mode {
-        display: block;  /* Displaying the list mode by default */
-    }
-</style>
+    <style type="text/css">
+        .card-img-top {
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .tile-mode {
+            display: none; /* Hiding the tile mode by default */
+        }
+
+        .list-mode {
+            display: block; /* Displaying the list mode by default */
+        }
+    </style>
 {% endblock %}
 
 {% block title %}WSI web viewer{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-   <div>
-       <h2 class="mb-4">WSI web viewer</h2>
-        <button class="btn btn-info mb-4" onclick="showView('tile')">Tile Mode</button>
-        <button class="btn btn-info mb-4" onclick="showView('list')">List Mode</button>
-   </div><!-- Tile Mode View -->
-    <div class="tile-mode" id="tileView">
-        <div class="card-group">
-        {% for entry in root_dir.children %}
-        <div class="card">
-            <a href="{% url 'slide' path=entry.url_path %}">
-                <img src="" data-src="{{ entry.url_path }}" alt="{{ entry.name }}" class="card-img-top lazy-thumbnail">
-                <div class="card-body">
-                    <h5 class="card-title">{{ entry.name }}</h5>
+    <div class="container-fluid">
+        <div id="notification" class="alert alert-info" role="alert"
+             style="display: {% if indexing_status and not indexing_status.finished %}block{% else %}none{% endif %};">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Folder is getting indexed...
+        </div>
+        <div>
+            <h2 class="mb-4">WSI web viewer</h2>
+            <button class="btn btn-info mb-4" onclick="showView('tile')">Tile Mode</button>
+            <button class="btn btn-info mb-4" onclick="showView('list')">List Mode</button>
+        </div><!-- Tile Mode View -->
+        <div class="tile-mode" id="tileView">
+            <div class="card-group">
+                {% for file in files %}
+                    <div class="card">
+                        <a href="{% url 'slide' path=file.path %}">
+                            {% if file.thumbnail %}
+                                <img src="{{ file.thumbnail }}" alt="Thumbnail">
+                            {% else %}
+                                <!-- Display a loader and a placeholder for the image -->
+                                <div class="image-container">
+                                    <div class="spinner-border" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+{#                                    <img data-src="{{ image.path }}" class="async-image"#}
+{#                                         onload="loadThumbnail(this);" style="display:none;">#}
+                                </div>
+                            {% endif %}
+
+
+                            <div class="card-body">
+                                <h5 class="card-title">{{ file.name }}</h5>
+                            </div>
+                        </a>
+                    </div>
+                    {% if forloop.counter|divisibleby:8 and not forloop.last %}
+                        </div>
+                        <div class="card-group">
+                    {% endif %}
+                {% endfor %}
                 </div>
-            </a>
         </div>
-        {% if forloop.counter|divisibleby:8 and not forloop.last %}
-        </div>
-        <div class="card-group">
-        {% endif %}
-        {% endfor %}
-        </div>
-    </div>
 
-    <!-- List Mode View -->
-    <div class="list-mode" id="listView">
-        <ul>
-        {% for entry in root_dir.children %}
-        <li class="list-group-item">
-            <a href="{% url 'slide' path=entry.url_path %}">{{ entry.name }}</a>
-        </li>
-        {% endfor %}
-        </ul>
-    </div>
+        <!-- List Mode View -->
+        <div class="list-mode" id="listView">
+            <ul>
+                {% for file in files %}
+                    <li class="list-group-item">
+                        <a href="{% url 'slide' path=file.path %}">{{ file.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
 
-</div>
+    </div>
 {% endblock %}
 
 {% block additional_scripts %}
-<script>
-    function showView(mode) {
-        if (mode === 'tile') {
-            document.getElementById('listView').style.display = 'none';
-            document.getElementById('tileView').style.display = 'block';
-        } else {
-            document.getElementById('tileView').style.display = 'none';
-            document.getElementById('listView').style.display = 'block';
-        }
-    }
-    document.addEventListener("DOMContentLoaded", function () {
-        let lazyImages = [].slice.call(document.querySelectorAll(".lazy-thumbnail"));
-        let active = false;
-
-        const lazyLoad = function () {
-            if (active === false) {
-                active = true;
-
-                setTimeout(function () {
-                    lazyImages.forEach(function (lazyImage) {
-                        if ((lazyImage.getBoundingClientRect().top <= window.innerHeight && lazyImage.getBoundingClientRect().bottom >= 0)
-                            && getComputedStyle(lazyImage).display !== "none") {
-                            let src = lazyImage.getAttribute("data-src");
-                            if (src) {
-                                fetch(`thumbnail/${src}`)
-                                    .then(response => response.blob())
-                                    .then(images => {
-                                        const imageURL = URL.createObjectURL(images);
-                                        lazyImage.src = imageURL;
-                                        lazyImage.removeAttribute("data-src");
-                                    });
-                            }
-                            lazyImages = lazyImages.filter(function (image) {
-                                return image.getAttribute("data-src");
-                            });
-
-                            if (lazyImages.length === 0) {
-                                document.removeEventListener("scroll", lazyLoad);
-                                window.removeEventListener("resize", lazyLoad);
-                                window.removeEventListener("orientationchange", lazyLoad);
-                            }
-                        }
-                    });
-
-                    active = false;
-                }, 200);
+    <script>
+        function showView(mode) {
+            if (mode === 'tile') {
+                document.getElementById('listView').style.display = 'none';
+                document.getElementById('tileView').style.display = 'block';
+            } else {
+                document.getElementById('tileView').style.display = 'none';
+                document.getElementById('listView').style.display = 'block';
             }
-        };
+        }
 
-        document.addEventListener("scroll", lazyLoad);
-        window.addEventListener("resize", lazyLoad);
-        window.addEventListener("orientationchange", lazyLoad);
-    });
+        document.addEventListener("DOMContentLoaded", function () {
+            const lazyImages = [].slice.call(document.querySelectorAll(".async-image"));
+            let active = false;
+
+            const lazyLoad = function () {
+                if (active === false) {
+                    active = true;
+
+                    setTimeout(function () {
+                        lazyImages.forEach(function (lazyImage) {
+                            if ((lazyImage.getBoundingClientRect().top <= window.innerHeight && lazyImage.getBoundingClientRect().bottom >= 0)
+                                && getComputedStyle(lazyImage).display !== "none") {
+                                const src = lazyImage.getAttribute("data-src");
+                                if (src) {
+                                    fetch(`/generate_thumbnail/${src}/`)
+                                        .then(response => response.blob())
+                                        .then(blob => {
+                                            const imgUrl = URL.createObjectURL(blob);
+                                            lazyImage.src = imgUrl;
+                                            lazyImage.classList.remove("async-image");  // Remove class to prevent re-processing
+                                            // Hide the loader if exists
+                                            const loader = lazyImage.parentElement.querySelector('.loader');
+                                            if (loader) {
+                                                loader.style.display = 'none';
+                                            }
+                                        });
+                                }
+                            }
+                        });
+
+                        active = false;
+                    }, 200);
+                }
+            };
+
+            document.addEventListener("scroll", lazyLoad);
+            window.addEventListener("resize", lazyLoad);
+            window.addEventListener("orientationchange", lazyLoad);
+        });
+
+        function checkIndexingStatus() {
+            fetch('/check_indexing_status/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.finished_indexing) {
+                        document.getElementById("notification").style.display = "none";
+                        clearInterval(pollingInterval);
+                    }
+                })
+                .catch(error => {
+                    console.error("There was a problem with the fetch operation:", error.message);
+                });
+        }
+
+        let pollingInterval;
+        if (document.getElementById("notification").style.display === "block") {
+            pollingInterval = setInterval(checkIndexingStatus, 5000);  // Check every 5 seconds
+        }
     </script>
 {% endblock %}
-```
+

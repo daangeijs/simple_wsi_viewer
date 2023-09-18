@@ -1,11 +1,12 @@
 import os
 from collections import OrderedDict
 from threading import Lock
+from django.conf import settings
 from openslide import OpenSlide, OpenSlideCache, OpenSlideError, OpenSlideVersionError
 from openslide.deepzoom import DeepZoomGenerator
 import openslide
 from io import BytesIO
-from PIL import ImageCms
+from PIL import ImageCms, Image
 import zlib
 import base64
 from pathlib import Path
@@ -28,7 +29,7 @@ SRGB_PROFILE_BYTES = zlib.decompress(
 SRGB_PROFILE = ImageCms.getOpenProfile(BytesIO(SRGB_PROFILE_BYTES))
 
 
-class _SlideCache:
+class SlideCache:
     def __init__(self, cache_size, tile_cache_mb, dz_opts, color_mode):
         self.cache_size = cache_size
         self.dz_opts = dz_opts
@@ -107,38 +108,37 @@ class _SlideCache:
         return xfrm
 
 
-class _Directory:
+def get_thumbnail(input_path, max_width=200):
+    """Generate and save a thumbnail for the given image using OpenSlide."""
+    # Open the slide
+    slide = openslide.OpenSlide(str(input_path))
 
-    def __init__(self, basedir, relpath=''):
-        relpath = Path(relpath)
-        self.name = relpath.name
-        self.children = []
-        for child in sorted((Path(basedir) / relpath).iterdir()):
-            cur_relpath = relpath / child.name
-            #Todo: Disable folder nesting for now
+    # Get the level count and select the highest level (smallest resolution)
+    highest_level = slide.level_count - 1
 
-            # if child.is_dir():
-            #     cur_dir = _Directory(basedir, cur_relpath)
-            #     if cur_dir.children:
-            #         self.children.append(cur_dir)
+    # Read the smallest image
+    smallest_image = slide.read_region((0, 0), highest_level, slide.level_dimensions[highest_level])
 
-            if OpenSlide.detect_format(child):
-                self.children.append(_SlideFile(cur_relpath))
+    # Resize the image if it's larger than max_width
+    if smallest_image.width > max_width:
+        smallest_image = smallest_image.resize(
+            (max_width, int((max_width / smallest_image.width) * smallest_image.height)))
 
-
-class _SlideFile:
-    def __init__(self, relpath):
-        self.name = relpath.name
-        self.url_path = relpath
-
-import pyvips
+    return smallest_image
 
 
-def generate_thumbnail(input_path, max_width=200):
-    """Generate a thumbnail for the given image using pyvips."""
-    thumbnail = pyvips.Image.thumbnail(input_path, max_width, height=max_width, size="down")
+def save_thumbnail(input_path, max_width=200):
+    """Generate and save a thumbnail for the given image using OpenSlide."""
+    thumbnail = get_thumbnail(input_path, max_width)
 
-    # Convert the thumbnail to JPEG format
-    thumbnail_buffer = thumbnail.write_to_buffer('.jpg')
+    # Construct thumbnail path in the media folder
+    thumbnail_path = Path(settings.MEDIA_ROOT).joinpath(f"thumb_{input_path.name}.png")
 
-    return thumbnail_buffer
+    # check if folder exists
+    if not thumbnail_path.parent.exists():
+        thumbnail_path.parent.mkdir(exist_ok=True, parents=True)
+
+    # Save the thumbnail
+    thumbnail.save(thumbnail_path)
+
+    return thumbnail_path

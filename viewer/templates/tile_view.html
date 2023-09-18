@@ -1,0 +1,85 @@
+{% extends "core.html" %}
+
+{% block additional_head %}
+
+    <style type="text/css">
+        .card-img-top {
+            height: 100px;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}WSI web viewer{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div id="notification" class="alert alert-info" role="alert"
+             style="display: {% if not finished_indexing %}block{% else %}none{% endif %};">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Folder is getting indexed...
+        </div>
+        <h2 class="mb-4">WSI web viewer</h2>
+        <a href="{% url 'list_view' %}" class="btn btn-info mb-4">List Mode</a>
+
+        <!-- Tile Mode View -->
+        <div class="tile-mode" id="tileView">
+            <div class="card-group">
+                {% for file in files %}
+                    <div class="card">
+                        <a href="{% url 'slide' path=file.path %}">
+                            {% if file.thumbnail %}
+                                <img class="lazyload card-img-top" data-src="/{{ file.thumbnail }}" alt="Thumbnail">
+                            {% else %}
+                                <div class="spinner-border placeholder-spinner" role="status"
+                                     style="{% if file.thumbnail %}display:none;{% endif %}">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ file.name }}</h5>
+                            </div>
+                        </a>
+                    </div>
+                    {% if forloop.counter|divisibleby:8 and not forloop.last %}
+                        </div>
+                        <div class="card-group">
+                    {% endif %}
+                {% endfor %}
+                </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional_scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const lazyImages = document.querySelectorAll(".lazyload");
+            new LazyLoad(lazyImages);
+        });
+
+        function checkIndexingStatus() {
+            fetch('/check_indexing_status/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.finished) {
+                        document.getElementById("notification").style.display = "none";
+                        clearInterval(pollingInterval);
+                    }
+                })
+                .catch(error => {
+                    console.error("There was a problem with the fetch operation:", error.message);
+                });
+        }
+
+        let pollingInterval;
+        if (document.getElementById("notification").style.display === "block") {
+            pollingInterval = setInterval(checkIndexingStatus, 5000);  // Check every 5 seconds
+        }
+    </script>
+{% endblock %}

@@ -15,23 +15,14 @@ ul {
 
 
 <ul>
-    {% for entry in root_dir.children %}
-        <li class="list-group-item {% if entry.name == current_file %}selected{% endif %}">
-            {% if entry.url_path %}
-                <a href="{% url 'slide' path=entry.url_path %}">
-                    {{ entry.name }}
+    {% for file in files %}
+        <li class="list-group-item {% if file.name == current_file %}selected{% endif %}">
+            {% if file.path %}
+                <a href="{% url 'slide' path=file.path %}">
+                    {{ file.name }}
                 </a>
             {% else %}
-                {{ entry.name }}
-            {% endif %}
-
-            {% if entry.children %}
-                <ul>
-                    <!-- For recursion in Django, you'd typically include the same template. -->
-                    {% with root_dir=entry %}
-                        {% include "files.html" %}
-                    {% endwith %}
-                </ul>
+                {{ file.name }}
             {% endif %}
         </li>
     {% empty %}

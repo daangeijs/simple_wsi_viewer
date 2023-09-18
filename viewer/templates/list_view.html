@@ -1,0 +1,64 @@
+{% extends "core.html" %}
+
+{% block additional_head %}
+    <style type="text/css">
+        .card-img-top {
+            height: 100px;
+            object-fit: cover;
+        }
+    </style>
+{% endblock %}
+
+{% block title %}WSI web viewer{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div id="notification" class="alert alert-info" role="alert"
+             style="display: {% if not finished_indexing %}block{% else %}none{% endif %};">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Folder is getting indexed...
+        </div>
+
+        <h2 class="mb-4">WSI web viewer</h2>
+        <a href="{% url 'tile_view' %}" class="btn btn-info mb-4">Tile Mode</a>
+
+        <!-- List Mode View -->
+        <div class="list-mode" id="listView">
+            <ul>
+                {% for file in files %}
+                    <li class="list-group-item">
+                        <a href="{% url 'slide' path=file.path %}">{{ file.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional_scripts %}
+    <script>
+        function checkIndexingStatus() {
+            fetch('/check_indexing_status/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.finished) {
+                        document.getElementById("notification").style.display = "none";
+                        clearInterval(pollingInterval);
+                    }
+                })
+                .catch(error => {
+                    console.error("There was a problem with the fetch operation:", error.message);
+                });
+        }
+
+        let pollingInterval;
+        if (document.getElementById("notification").style.display === "block") {
+            pollingInterval = setInterval(checkIndexingStatus, 5000);  // Check every 5 seconds
+        }
+    </script>
+{% endblock %}
