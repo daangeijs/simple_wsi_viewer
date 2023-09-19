@@ -20,7 +20,7 @@ services:
     command: celery -A wsi_viewer worker -l info
     volumes:
       - .:/app
-      - /Volumes/pathology/archives/skin/aida_sweden_dataset/test_set:/slides
+      - ${FOLDER}:/slides
     depends_on:
       - redis
 
