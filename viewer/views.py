@@ -8,6 +8,8 @@ from django.core.files.base import ContentFile
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
+from openslide import open_slide
+
 from viewer.utils import SlideCache, get_thumbnail
 
 from django.views.decorators.cache import cache_page
@@ -40,7 +42,8 @@ def get_slide(path):
     try:
         slide = cache.get(str(slide_path))
         slide.filename = slide_path.name
-        return slide
+        properties = open_slide(slide_path).properties
+        return slide, properties
     except Exception as e:
         raise Http404(str(e))
 
@@ -77,7 +80,7 @@ def check_indexing_status(request):
 
 @cache_page(60)
 def slide(request, path):
-    slide_obj = get_slide(path)
+    slide_obj, properties = get_slide(path)
     # Assuming you have a URL pattern named 'dzi' for the next view
     slide_url = reverse('dzi', args=[path])
     # get the requested image object
@@ -92,20 +95,21 @@ def slide(request, path):
         'slide_mpp': slide_obj.mpp,
         'available_files': Image.objects.all(),
         'previous_slide': prev_image.path,
-        'next_slide': next_image.path
+        'next_slide': next_image.path,
+        'properties': properties,
     }
     return render(request, 'view.html', context)
 
 
 def dzi(request, path):
-    slide_obj = get_slide(path)
+    slide_obj, _ = get_slide(path)
     format_ = settings.DEEPZOOM_FORMAT
     dzi_content = slide_obj.get_dzi(format_)
     return HttpResponse(dzi_content, content_type='application/xml')
 
 
 def tile(request, path, level, col, row, format_):
-    slide_obj = get_slide(path)
+    slide_obj, _ = get_slide(path)
     format_ = format_.lower()
     if format_ not in ['jpeg', 'png']:
         # Not supported by Deep Zoom
