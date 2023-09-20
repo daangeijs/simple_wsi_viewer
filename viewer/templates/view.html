@@ -2,9 +2,6 @@
 {% load static %}
 
 
-{% block title %}
-    {{ slide_filename }}
-{% endblock %}
 
 {% block additional_head %}
     <style type="text/css">
@@ -26,7 +23,7 @@
         }
 
         .sidebar-scrollable {
-            max-height: 90vh; /* This will make the sidebar take 80% of the viewport height. Adjust as needed. */
+            max-height: 80vh; /* This will make the sidebar take 80% of the viewport height. Adjust as needed. */
             overflow-y: auto;
         }
 
@@ -38,35 +35,106 @@
         li.selected a {
             color: rgb(0, 0, 0);
         }
+
+
+        div#properties dl {
+            font-size: small;
+            margin: 0;
+        }
+
+        div#properties dt {
+            font-weight: bold;
+            border-top: 1px solid #000;
+            background-color: #eee;
+        }
+
+        div#properties dd {
+            margin-left: 0;
+        }
+
+        #sidebarMenu {
+            transition: transform 0.3s ease-out;
+            z-index: 1000; /* This will ensure the sidebar overlays the main content when sliding */
+        }
+
+        #sidebarMenu {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            width: 20%; /* You can adjust the width as needed */
+            transition: transform 0.3s ease-out;
+            z-index: 1000; /* Ensure the sidebar overlays the main content when sliding */
+        }
+
+        #sidebarMenu.collapsed {
+            transform: translateX(-100%);
+        }
+
+        #mainContent.expanded {
+            width: 100% !important;
+        }
+
+
     </style>
 {% endblock %}
 
 {% block content %}
     <div class="container-fluid">
+        <nav class="sticky-top navbar navbar-expand-lg navbar-light bg-light"> <!-- Navigation bar -->
+            <div class="col-md-4 navigation-buttons d-flex justify-content-start">
+                {#                {{ slide_filename }}#}
+                <button class="btn btn-outline-secondary" id="menuToggle">Toggle Files</button>
+            </div>
+
+
+            <!-- Previous and Next buttons (1/3 of the page) -->
+            <div class="col-md-4 navigation-buttons d-flex justify-content-between align-items-center">
+                <a href="{% url 'slide' path=previous_slide %}" class="btn btn-info">Previous</a>
+                <a href="{% url 'slide' path=next_slide %}" class="btn btn-info">Next</a>
+            </div>
+
+            <!-- Back to Catalog button (1/3 of the page) -->
+            <div class="col-md-4 navigation-buttons d-flex justify-content-end align-items-right">
+                <a href="{% url 'list_view' %}" class="btn btn-dark">Back to Catalog</a>
+            </div>
+
+
+        </nav>
+
         <div class="row">
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse show" id="sidebarMenu">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar" id="sidebarMenu">
                 <div class="position-sticky sidebar-scrollable">
                     <ul class="nav flex-column">
                         {% include "files.html" with files=available_files current_file=slide_filename %}
                     </ul>
                 </div>
-                <div class="navigation-buttons d-flex justify-content-between">
-                    <a href="{% url 'slide' path=previous_slide %}" class="btn btn-info">Previous</a>
-                    <a href="{% url 'slide' path=next_slide %}" class="btn btn-info">Next</a>
-                </div>
-                <div class="navigation-buttons d-flex ">
-                    <a href="{% url 'list_view' %}" class="btn btn-dark">Back to Catalog</a>
-                </div>
+
+
             </nav>
 
             <!-- Main Content -->
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4" id="mainContent">
                 <div id="view"></div>
             </main>
+
         </div>
-
+        <div id="properties" class="col-12">
+            <h1>Slide properties</h1>
+            {% if properties %}
+                <div id="properties-inner">
+                    <dl>
+                        {% for key, value in properties.items %}
+                            <dt data-toggle="collapse" data-target="#{{ key|slugify }}">{{ key }}</dt>
+                            <dd id="{{ key|slugify }}" class="collapse">{{ value }}</dd>
+                        {% endfor %}
+                    </dl>
+                </div>
+            {% else %}
+                <span class="notice">Could not load properties</span>
+            {% endif %}
+        </div>
     </div>
-
 {% endblock %}
 
 {% block additional_scripts %}
@@ -87,17 +155,45 @@
                 zoomPerScroll: 2,
                 timeout: 120000,
             });
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            var menu = document.getElementById('sidebarMenu');
+            var mainContent = document.getElementById('mainContent');
+            var toggleButton = document.getElementById('menuToggle');
 
-            var mpp = parseFloat("{{ slide_mpp }}");
-            viewer.scalebar({
-                pixelsPerMeter: mpp ? (1e6 / mpp) : 0,
-                xOffset: 10,
-                yOffset: 10,
-                barThickness: 3,
-                color: '#555555',
-                fontColor: '#333333',
-                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-            });
+            var sidebarState = sessionStorage.getItem('sidebarState');
+
+            if (sidebarState === 'collapsed') {
+                menu.classList.add('collapsed');
+                mainContent.classList.remove('with-sidebar');
+                mainContent.classList.remove('col-md-9', 'ml-sm-auto', 'col-lg-10');
+                mainContent.classList.add('col-md-12', 'col-lg-12');
+                toggleButton.innerText = "Show Files";
+            } else {
+                toggleButton.innerText = "Hide Files";
+            }
+        });
+
+        document.getElementById('menuToggle').addEventListener('click', function () {
+            var menu = document.getElementById('sidebarMenu');
+            var mainContent = document.getElementById('mainContent');
+            var toggleButton = this;
+
+            if (menu.classList.contains('collapsed')) {
+                menu.classList.remove('collapsed');
+                mainContent.classList.add('with-sidebar');
+                mainContent.classList.remove('col-md-12', 'col-lg-12');
+                mainContent.classList.add('col-md-9', 'ml-sm-auto', 'col-lg-10');
+                toggleButton.innerText = "Hide Files";
+                sessionStorage.setItem('sidebarState', 'expanded');
+            } else {
+                menu.classList.add('collapsed');
+                mainContent.classList.remove('with-sidebar');
+                mainContent.classList.remove('col-md-9', 'ml-sm-auto', 'col-lg-10');
+                mainContent.classList.add('col-md-12', 'col-lg-12');
+                toggleButton.innerText = "Show Files";
+                sessionStorage.setItem('sidebarState', 'collapsed');
+            }
         });
     </script>
 {% endblock %}
