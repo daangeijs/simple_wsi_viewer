@@ -34,7 +34,7 @@
         }
 
         .sidebar-scrollable {
-            max-height: 80vh; /* This will make the sidebar take 80% of the viewport height. Adjust as needed. */
+            max-height: 90vh; /* This will make the sidebar take 80% of the viewport height. Adjust as needed. */
             overflow-y: auto;
         }
 
@@ -95,7 +95,7 @@
 
 {% block content %}
     <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light"> <!-- Navigation bar -->
+        <nav class="sticky-top navbar navbar-expand-lg navbar-light bg-light"> <!-- Navigation bar -->
             <div class="col-md-4 navigation-buttons d-flex justify-content-start">
                 {#                {{ slide_filename }}#}
                 <button class="btn btn-outline-secondary" id="menuToggle">Toggle Files</button>
