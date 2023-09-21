@@ -1,15 +1,19 @@
 {% extends "core.html" %}
 {% load static %}
 
+{% block title %}WSI web viewer: {{ slide_filename }}{% endblock %}
+
+
 {% block additional_head %}
     <link rel="stylesheet" type="text/css" href="{% static 'viewer/view.css' %}">
+    <!-- Load OpenSeadragon -->
+    <script src="{% static 'viewer/openseadragon-4.1.0/openseadragon.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
     <div class="container-fluid">
         <nav class="sticky-top navbar navbar-expand-lg justify-content-between navbar-light bg-light"> <!-- Navigation bar -->
             <div class="flex-grow-1 navigation-buttons d-flex justify-content-start">
-                {#                {{ slide_filename }}#}
                 <button class="btn btn-outline-secondary" id="menuToggle">Toggle Files</button>
             </div>
 

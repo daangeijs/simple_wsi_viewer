@@ -17,21 +17,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lazyload@2.0.0-rc.2/lazyload.js"></script>
 
-    <!-- Load OpenSeadragon -->
-    <script src="{% static 'viewer/openseadragon-4.1.0/openseadragon.min.js' %}"></script>
-
-    {% block additional_head %}{% endblock %}
+    {% block additional_head %}
+        <!-- Add additional head content here -->
+    {% endblock %}
 </head>
+
 <body>
-
-
-{% block content %}{% endblock %}
-
-
-
-
+{% block content %}
+    <!-- Add body content here -->
+{% endblock %}
 
 {% block additional_scripts %}
+    <!-- Add additional scripts here -->
 {% endblock %}
 </body>
 
