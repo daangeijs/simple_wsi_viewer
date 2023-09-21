@@ -7,21 +7,26 @@
 
 {% block content %}
     <div class="container-fluid">
-        <nav class="sticky-top navbar navbar-expand-lg navbar-light bg-light"> <!-- Navigation bar -->
-            <div class="col-md-4 navigation-buttons d-flex justify-content-start">
+        <nav class="sticky-top navbar navbar-expand-lg justify-content-between navbar-light bg-light"> <!-- Navigation bar -->
+            <div class="flex-grow-1 navigation-buttons d-flex justify-content-start">
                 {#                {{ slide_filename }}#}
                 <button class="btn btn-outline-secondary" id="menuToggle">Toggle Files</button>
             </div>
 
 
             <!-- Previous and Next buttons (1/3 of the page) -->
-            <div class="col-md-4 navigation-buttons d-flex justify-content-between align-items-center">
+            <div class="navigation-buttons d-flex justify-content-between align-items-center" style="width: 800px;">
                 <a href="{% url 'slide' path=previous_slide %}" class="btn btn-info">Previous</a>
+                {% if slide_filename|length > 60 %}
+                    {{ slide_filename|slice:":60" }}...
+                {% else %}
+                    {{ slide_filename }}
+                {% endif %}
                 <a href="{% url 'slide' path=next_slide %}" class="btn btn-info">Next</a>
             </div>
 
             <!-- Back to Catalog button (1/3 of the page) -->
-            <div class="col-md-4 navigation-buttons d-flex justify-content-end align-items-right">
+            <div class="flex-grow-1 navigation-buttons d-flex justify-content-end align-items-right">
                 <a href="{% url 'list_view' %}" class="btn btn-dark">Back to Catalog</a>
             </div>
 
