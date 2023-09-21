@@ -1,96 +1,8 @@
 {% extends "core.html" %}
 {% load static %}
 
-
-
 {% block additional_head %}
-    <script>
-        // On page render, check session storage and set styles accordingly
-        var sidebarState = window.sessionStorage.getItem('sidebarState');
-        if (sidebarState === 'collapsed') {
-            document.documentElement.style.setProperty('--sidebar-display', 'none');
-            document.documentElement.style.setProperty('--main-col-size', 'col-md-12 col-lg-12');
-        } else {
-            document.documentElement.style.setProperty('--sidebar-display', 'block');
-            document.documentElement.style.setProperty('--main-col-size', 'col-md-9 ml-sm-auto col-lg-10');
-        }
-    </script>
-    <style type="text/css">
-        html, body, .container-fluid, .row, main {
-            height: 100%;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-        }
-
-        #view {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: white;
-            color: white;
-        }
-
-        .sidebar-scrollable {
-            max-height: 90vh; /* This will make the sidebar take 80% of the viewport height. Adjust as needed. */
-            overflow-y: auto;
-        }
-
-        li.selected {
-            background-color: #ececec;
-            font-weight: bold;
-        }
-
-        li.selected a {
-            color: rgb(0, 0, 0);
-        }
-
-
-        div#properties dl {
-            font-size: small;
-            margin: 0;
-        }
-
-        div#properties dt {
-            font-weight: bold;
-            border-top: 1px solid #000;
-            background-color: #eee;
-        }
-
-        div#properties dd {
-            margin-left: 0;
-        }
-
-        #sidebarMenu {
-            transition: transform 0.3s ease-out;
-            z-index: 1000; /* This will ensure the sidebar overlays the main content when sliding */
-        }
-
-        #sidebarMenu {
-            position: absolute;
-            top: 60px;
-            left: 0;
-            bottom: 0;
-            width: 20%; /* You can adjust the width as needed */
-            transition: transform 0.3s ease-out;
-            z-index: 1000; /* Ensure the sidebar overlays the main content when sliding */
-        }
-
-        #sidebarMenu.collapsed {
-            transform: translateX(-100%);
-        }
-
-        #mainContent.expanded {
-            width: 100% !important;
-        }
-
-        #mainContent.with-sidebar {
-            margin-left: var(--sidebar-width, 20%);
-        }
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'viewer/view.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -133,7 +45,8 @@
             <main role="main"
                   class="col-md-9 ml-sm-auto col-lg-10 px-md-4 {% if 'sidebar-collapsed' in request.COOKIES %}col-md-12 col-lg-12{% endif %}"
                   id="mainContent">
-                <div id="view"></div>
+                <div id="view" data-slide-url="{{ slide_url }}"
+                     data-prefix-url="{% static 'viewer/openseadragon-4.1.0/images/' %}">
             </main>
 
         </div>
@@ -156,64 +69,5 @@
 {% endblock %}
 
 {% block additional_scripts %}
-    <script type="text/javascript">
-        $(function () {
-            var viewer = new OpenSeadragon({
-                id: "view",
-                tileSources: "{{ slide_url }}",
-                prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
-                showNavigator: true,
-                showRotationControl: true,
-                animationTime: 0.5,
-                blendTime: 0.1,
-                constrainDuringPan: true,
-                maxZoomPixelRatio: 2,
-                minZoomImageRatio: 1,
-                visibilityRatio: 1,
-                zoomPerScroll: 2,
-                timeout: 120000,
-            });
-        });
-        // Check the initial state on page load
-        document.addEventListener("DOMContentLoaded", function () {
-            var menu = document.getElementById('sidebarMenu');
-            var mainContent = document.getElementById('mainContent');
-            var toggleButton = document.getElementById('menuToggle');
-
-            var sidebarState = sessionStorage.getItem('sidebarState');
-
-            if (sidebarState === 'collapsed') {
-                menu.classList.add('collapsed');
-                mainContent.classList.remove('with-sidebar');
-                mainContent.classList.remove('col-md-9', 'ml-sm-auto', 'col-lg-10');
-                mainContent.classList.add('col-md-12', 'col-lg-12');
-                toggleButton.innerText = "Show Files";
-            } else {
-                toggleButton.innerText = "Hide Files";
-            }
-        });
-
-        document.getElementById('menuToggle').addEventListener('click', function () {
-            var menu = document.getElementById('sidebarMenu');
-            var mainContent = document.getElementById('mainContent');
-            var toggleButton = this;
-
-            if (menu.classList.contains('collapsed')) {
-                menu.classList.remove('collapsed');
-                mainContent.classList.add('with-sidebar');
-                mainContent.classList.remove('col-md-12', 'col-lg-12');
-                mainContent.classList.add('col-md-9', 'ml-sm-auto', 'col-lg-10');
-                toggleButton.innerText = "Hide Files";
-                sessionStorage.setItem('sidebarState', 'expanded');
-            } else {
-                menu.classList.add('collapsed');
-                mainContent.classList.remove('with-sidebar');
-                mainContent.classList.remove('col-md-9', 'ml-sm-auto', 'col-lg-10');
-                mainContent.classList.add('col-md-12', 'col-lg-12');
-                toggleButton.innerText = "Show Files";
-                sessionStorage.setItem('sidebarState', 'collapsed');
-            }
-        });
-    </script>
-
+    <script src="{% static 'viewer/view.js' %}"></script>
 {% endblock %}
