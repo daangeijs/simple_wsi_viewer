@@ -1,0 +1,71 @@
+html, body, .container-fluid, .row, main {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#view {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    color: white;
+}
+
+.sidebar-scrollable {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#mainContent {
+    transition: width 0.3s ease-out;
+}
+
+li.selected {
+    background-color: #ececec;
+    font-weight: bold;
+}
+
+li.selected a {
+    color: rgb(0, 0, 0);
+}
+
+div#properties dl {
+    font-size: small;
+    margin: 0;
+}
+
+div#properties dt {
+    font-weight: bold;
+    border-top: 1px solid #000;
+    background-color: #eee;
+}
+
+div#properties dd {
+    margin-left: 0;
+}
+
+#sidebarMenu {
+    transition: transform 0.3s ease-out;
+    z-index: 1000;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    bottom: 0;
+    width: 20%;
+}
+
+#sidebarMenu.collapsed {
+    transform: translateX(-100%);
+}
+
+#mainContent.expanded {
+    width: 100% !important;
+}
+
+#mainContent.with-sidebar {
+    margin-left: var(--sidebar-width, 20%);
+}

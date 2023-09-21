@@ -1,103 +1,82 @@
 {% extends "core.html" %}
 {% load static %}
 
+{% block title %}WSI web viewer: {{ slide_filename }}{% endblock %}
 
-{% block title %}
-    {{ slide_filename }}
-{% endblock %}
 
 {% block additional_head %}
-    <style type="text/css">
-        html, body, .container-fluid, .row, main {
-            height: 100%;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-        }
-
-        #view {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: white;
-            color: white;
-        }
-
-        .sidebar-scrollable {
-            max-height: 90vh; /* This will make the sidebar take 80% of the viewport height. Adjust as needed. */
-            overflow-y: auto;
-        }
-
-        li.selected {
-            background-color: #ececec;
-            font-weight: bold;
-        }
-
-        li.selected a {
-            color: rgb(0, 0, 0);
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'viewer/view.css' %}">
+    <!-- Load OpenSeadragon -->
+    <script src="{% static 'viewer/openseadragon-4.1.0/openseadragon.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
     <div class="container-fluid">
+        <nav class="sticky-top navbar navbar-expand-lg justify-content-between navbar-light bg-light"> <!-- Navigation bar -->
+            <div class="flex-grow-1 navigation-buttons d-flex justify-content-start">
+                <button class="btn btn-outline-secondary" id="menuToggle">Toggle Files</button>
+            </div>
+
+
+            <!-- Previous and Next buttons (1/3 of the page) -->
+            <div class="navigation-buttons d-flex justify-content-between align-items-center" style="width: 800px;">
+                <a href="{% url 'slide' path=previous_slide %}" class="btn btn-info">Previous</a>
+                {% if slide_filename|length > 60 %}
+                    {{ slide_filename|slice:":60" }}...
+                {% else %}
+                    {{ slide_filename }}
+                {% endif %}
+                <a href="{% url 'slide' path=next_slide %}" class="btn btn-info">Next</a>
+            </div>
+
+            <!-- Back to Catalog button (1/3 of the page) -->
+            <div class="flex-grow-1 navigation-buttons d-flex justify-content-end align-items-right">
+                <a href="{% url 'list_view' %}" class="btn btn-dark">Back to Catalog</a>
+            </div>
+
+
+        </nav>
+
         <div class="row">
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse show" id="sidebarMenu">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse show {% if 'sidebar-collapsed' in request.COOKIES %}collapsed{% endif %}"
+                 id="sidebarMenu">
+
                 <div class="position-sticky sidebar-scrollable">
                     <ul class="nav flex-column">
                         {% include "files.html" with files=available_files current_file=slide_filename %}
                     </ul>
                 </div>
-                <div class="navigation-buttons d-flex justify-content-between">
-                    <a href="{% url 'slide' path=previous_slide %}" class="btn btn-info">Previous</a>
-                    <a href="{% url 'slide' path=next_slide %}" class="btn btn-info">Next</a>
-                </div>
-                <div class="navigation-buttons d-flex ">
-                    <a href="{% url 'list_view' %}" class="btn btn-dark">Back to Catalog</a>
-                </div>
+
+
             </nav>
 
             <!-- Main Content -->
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div id="view"></div>
+            <main role="main"
+                  class="col-md-9 ml-sm-auto col-lg-10 px-md-4 {% if 'sidebar-collapsed' in request.COOKIES %}col-md-12 col-lg-12{% endif %}"
+                  id="mainContent">
+                <div id="view" data-slide-url="{{ slide_url }}"
+                     data-prefix-url="{% static 'viewer/openseadragon-4.1.0/images/' %}">
             </main>
+
         </div>
-
+        <div id="properties" class="col-12">
+            <h1>Slide properties</h1>
+            {% if properties %}
+                <div id="properties-inner">
+                    <dl>
+                        {% for key, value in properties.items %}
+                            <dt data-toggle="collapse" data-target="#{{ key|slugify }}">{{ key }}</dt>
+                            <dd id="{{ key|slugify }}" class="collapse">{{ value }}</dd>
+                        {% endfor %}
+                    </dl>
+                </div>
+            {% else %}
+                <span class="notice">Could not load properties</span>
+            {% endif %}
+        </div>
     </div>
-
 {% endblock %}
 
 {% block additional_scripts %}
-    <script type="text/javascript">
-        $(function () {
-            var viewer = new OpenSeadragon({
-                id: "view",
-                tileSources: "{{ slide_url }}",
-                prefixUrl: "{% static 'viewer/openseadragon-4.1.0/images/' %}",
-                showNavigator: true,
-                showRotationControl: true,
-                animationTime: 0.5,
-                blendTime: 0.1,
-                constrainDuringPan: true,
-                maxZoomPixelRatio: 2,
-                minZoomImageRatio: 1,
-                visibilityRatio: 1,
-                zoomPerScroll: 2,
-                timeout: 120000,
-            });
-
-            var mpp = parseFloat("{{ slide_mpp }}");
-            viewer.scalebar({
-                pixelsPerMeter: mpp ? (1e6 / mpp) : 0,
-                xOffset: 10,
-                yOffset: 10,
-                barThickness: 3,
-                color: '#555555',
-                fontColor: '#333333',
-                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-            });
-        });
-    </script>
+    <script src="{% static 'viewer/view.js' %}"></script>
 {% endblock %}

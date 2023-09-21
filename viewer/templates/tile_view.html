@@ -1,13 +1,8 @@
 {% extends "core.html" %}
+{% load static %}
 
 {% block additional_head %}
-
-    <style type="text/css">
-        .card-img-top {
-            height: 100px;
-            object-fit: cover;
-        }
-    </style>
+        <link rel="stylesheet" type="text/css" href="{% static 'catalog.css' %}">
 {% endblock %}
 
 {% block title %}WSI web viewer{% endblock %}
@@ -52,34 +47,5 @@
 {% endblock %}
 
 {% block additional_scripts %}
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const lazyImages = document.querySelectorAll(".lazyload");
-            new LazyLoad(lazyImages);
-        });
-
-        function checkIndexingStatus() {
-            fetch('/check_indexing_status/')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Network response was not ok");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.finished) {
-                        document.getElementById("notification").style.display = "none";
-                        clearInterval(pollingInterval);
-                    }
-                })
-                .catch(error => {
-                    console.error("There was a problem with the fetch operation:", error.message);
-                });
-        }
-
-        let pollingInterval;
-        if (document.getElementById("notification").style.display === "block") {
-            pollingInterval = setInterval(checkIndexingStatus, 5000);  // Check every 5 seconds
-        }
-    </script>
+    <script src="{% static 'catalog.js' %}"></script>
 {% endblock %}
