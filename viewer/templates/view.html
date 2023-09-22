@@ -59,21 +59,22 @@
             </main>
 
         </div>
-        <div id="properties" class="col-12">
-            <h1>Slide properties</h1>
-            {% if properties %}
-                <div id="properties-inner">
-                    <dl>
-                        {% for key, value in properties.items %}
-                            <dt data-toggle="collapse" data-target="#{{ key|slugify }}">{{ key }}</dt>
-                            <dd id="{{ key|slugify }}" class="collapse">{{ value }}</dd>
-                        {% endfor %}
-                    </dl>
-                </div>
-            {% else %}
-                <span class="notice">Could not load properties</span>
-            {% endif %}
-        </div>
+    {#  DISABLE FOR NOW, WORK IN PROGRESS #}
+{#        <div id="properties" class="col-12">#}
+{#            <h1>Slide properties</h1>#}
+{#            {% if properties %}#}
+{#                <div id="properties-inner">#}
+{#                    <dl>#}
+{#                        {% for key, value in properties.items %}#}
+{#                            <dt data-toggle="collapse" data-target="#{{ key|slugify }}">{{ key }}</dt>#}
+{#                            <dd id="{{ key|slugify }}" class="collapse">{{ value }}</dd>#}
+{#                        {% endfor %}#}
+{#                    </dl>#}
+{#                </div>#}
+{#            {% else %}#}
+{#                <span class="notice">Could not load properties</span>#}
+{#            {% endif %}#}
+{#        </div>#}
     </div>
 {% endblock %}
 
