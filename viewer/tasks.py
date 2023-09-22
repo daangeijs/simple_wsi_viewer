@@ -28,7 +28,7 @@ def index_images():
             generate_thumbnail_for_image.delay(image.id)
 
     # Glob the /data dir and add new items
-    image_paths = Path("/slides").glob("*A15.tif")
+    image_paths = Path("/slides").glob("*")
     for image_path in image_paths:
         if OpenSlide.detect_format(image_path):
             image_obj, created = Image.objects.get_or_create(name=image_path.name, path=str(image_path))
